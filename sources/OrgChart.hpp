@@ -4,11 +4,11 @@
 #include <stdexcept>
 #include <stack>
 #include <vector>
-#include <list>
+#include <queue>
 
 namespace ariel
 {
-    template <class T>
+    template <typename T = std::string>
     class OrgChart
     {
     private:
@@ -37,7 +37,7 @@ namespace ariel
                 return node;
             }
             Node *child = nullptr;
-            for (int i = 0; i < node->childs.size(); i++)
+            for (size_t i = 0; i < node->childs.size(); i++)
             {
                 child = search_node(node->childs.at(i), data);
             }
@@ -49,12 +49,13 @@ namespace ariel
             }
             return ans;
         }
+
     public:
         enum order_type
         {
-            PREORDER,
-            POSTORDER,
-            INORDER
+            LevelOrder,
+            PreOrder,
+            ReverseOrder
         };
         OrgChart()
         {
@@ -66,6 +67,20 @@ namespace ariel
             {
                 delete this->root;
             }
+        }
+        OrgChart(OrgChart<T> &other)
+        {
+            this->root = other.root;
+        }
+        OrgChart(OrgChart<T> &&other)
+        {
+            this->root = other.root;
+            other.root = nullptr;
+        }
+        OrgChart &operator=(OrgChart<T> &&other)
+        {
+            this->root = other.root;
+            other.root = nullptr;
         }
         OrgChart<T> &add_root(const T &data)
         {
@@ -95,7 +110,7 @@ namespace ariel
             {
                 if (node2 == nullptr)
                 {
-                    node1->childs..push_back(new Node(data2));
+                    node1->childs.push_back(new Node(data2));
                 }
                 else
                 {
@@ -112,9 +127,147 @@ namespace ariel
             }
             return *this;
         }
+        friend ostream &operator<<(ostream &os, const OrgChart &chart)
+        {
+            os << "chart" << endl;
+            return os;
+        }
 
-    class iterator{
-        
-    }
+        class iterator
+        {
+        private:
+            Node *curr_node;
+            stack<Node *> st;
+            queue<Node *> que;
+            order_type order;
+
+        public:
+            iterator(const order_type order = order_type::LevelOrder, Node *node = nullptr) : order(order), curr_node(node)
+            {
+                if (this->order != nullptr)
+                {
+                    if (this->order == order_type::LevelOrder)
+                    {
+                        for (size_t i = 0; i < this->curr_node->childs.size(); i++)
+                        {
+                            this->que.push(this->curr_node->childs.at(i));
+                        }
+                    }
+
+                    else if (this->order == order_type::PreOrder)
+                    {
+                        for (size_t i = this->curr_node->childs.size() - 1; i >= 0; i--)
+                        {
+                            this->st.push(this->curr_node->childs.at(i));
+                        }
+                    }
+                    else
+                    {
+                        Node *n = this->curr_node;
+                        this->que.push(n);
+                        while (!this->que.empty())
+                        {
+                            n = this->que.front();
+                            this->que.pop();
+                            this->st.push(n);
+                            for (size_t i = this->curr_node->childs.size() - 1; i >= 0; i--)
+                            {
+                                this->que.push(this->curr_node->childs.at(i));
+                            }
+                        }
+                    }
+                }
+            }
+            iterator &operator++()
+            {
+                if (this->order == order_type::LevelOrder)
+                {
+                    if (this->que.empty())
+                    {
+                        this->curr_node = nullptr;
+                        return *this;
+                    }
+                    this->curr_node = this->que.front();
+                    this->que.pop();
+                    for (size_t i = 0; i < this->curr_node->childs.size(); i++)
+                    {
+                        this->que.push(this->curr_node->childs.at(i));
+                    }
+                }
+                else if (this->order == order_type::PreOrder)
+                {
+                    if (this->st.empty())
+                    {
+                        this->curr_node = nullptr;
+                        return *this;
+                    }
+                    this->curr_node = this->st.top();
+                    this->st.pop();
+                    for (size_t i = this->curr_node->childs.size() - 1; i >= 0; i--)
+                    {
+                        this->st.push(this->curr_node->childs.at(i));
+                    }
+                }
+                else
+                {
+                    if (this->st.empty())
+                    {
+                        this->curr_node = nullptr;
+                        return *this;
+                    }
+                    this->curr_node = this->st.top();
+                    this->st.pop();
+                }
+                return *this;
+            }
+            T &operator*() const
+            {
+                return this->curr_node->data;
+            }
+            T *operator->() const
+            {
+                return &(this->curr_node->data);
+            }
+            bool operator==(const iterator &other)
+            {
+                return this->curr_node == other.curr_node;
+            }
+            bool operator!=(const iterator &other)
+            {
+                return this->curr_node != other.curr_node;
+            }
+        };
+        iterator begin_level_order()
+        {
+            return iterator(order_type::LevelOrder, this->root);
+        }
+        iterator end_level_order()
+        {
+            return iterator(order_type::LevelOrder, nullptr);
+        }
+        iterator begin_reverse_order()
+        {
+            return iterator(order_type::ReverseOrder, this->root);
+        }
+        iterator reverse_order()
+        {
+            return iterator(order_type::ReverseOrder, nullptr);
+        }
+        iterator begin_preorder()
+        {
+            return iterator(order_type::PreOrder, this->root);
+        }
+        iterator end_preorder()
+        {
+            return iterator(order_type::PreOrder, nullptr);
+        }
+        iterator begin()
+        {
+            return iterator(order_type::LevelOrder, this->root);
+        }
+        iterator end()
+        {
+            return iterator(order_type::LevelOrder, nullptr);
+        }
     };
 }
