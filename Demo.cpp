@@ -43,10 +43,10 @@ int main() {
     cout << (*it) << " " ;
   }  // prints: CEO CTO VP_SW CFO COO VP_BI
 
-  for (int element : organization)
-  { // this should work like level order
-    cout << element << " " ;
-  } // prints: CEO CTO CFO COO VP_SW VP_BI
+  // for (int element : organization)
+  // { // this should work like level order
+  //   cout << element << " " ;
+  // } // prints: CEO CTO CFO COO VP_SW VP_BI
 
   // demonstrate the arrow operator:
   for (auto it = organization.begin_level_order(); it != organization.end_level_order(); ++it)

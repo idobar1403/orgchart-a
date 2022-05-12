@@ -28,26 +28,39 @@ namespace ariel
         }
         Node *search_node(Node *node, T data)
         {
-            if (node == nullptr)
-            {
-                return nullptr;
-            }
-            if (node->data == data)
+            if (data == node->data)
             {
                 return node;
             }
-            Node *child = nullptr;
-            for (size_t i = 0; i < node->childs.size(); i++)
+            stack<Node *> s;
+            queue<Node *> q;
+            Node *curr = this->root;
+            s.push(curr);
+            while (!s.empty())
             {
-                child = search_node(node->childs.at(i), data);
+                curr = s.top();
+                s.pop();
+                if (curr->childs.size() > 0)
+                {
+                    for (auto c : curr->childs)
+                    {
+                        q.push(c);
+                        s.push(c);
+                    }
+                }
             }
-            Node *ans = nullptr;
-            if (child != nullptr)
+            Node *a = nullptr;
+            while (!q.empty())
             {
-                ans = child;
-                return ans;
+                a = q.front();
+                if (data == a->data)
+                {
+                    return a;
+                }
+                q.pop();
             }
-            return ans;
+
+            return nullptr;
         }
 
     public:
@@ -68,20 +81,20 @@ namespace ariel
                 delete this->root;
             }
         }
-        OrgChart(OrgChart<T> &other)
-        {
-            this->root = other.root;
-        }
-        OrgChart(OrgChart<T> &&other)
-        {
-            this->root = other.root;
-            other.root = nullptr;
-        }
-        OrgChart &operator=(OrgChart<T> &&other)
-        {
-            this->root = other.root;
-            other.root = nullptr;
-        }
+        // OrgChart(OrgChart<T> &other) noexcept
+        // {
+        //     this->root = other.root;
+        // }
+        // OrgChart(OrgChart<T> &&other) noexcept
+        // {
+        //     this->root = other.root;
+        //     other.root = nullptr;
+        // }
+        // OrgChart &operator=(OrgChart<T> &&other) noexcept
+        // {
+        //     this->root = other.root;
+        //     other.root = nullptr;
+        // }
         OrgChart<T> &add_root(const T &data)
         {
             if (this->root == nullptr)
@@ -142,18 +155,17 @@ namespace ariel
             order_type order;
 
         public:
-            iterator(const order_type order = order_type::LevelOrder, Node *node = nullptr) : order(order), curr_node(node)
+            iterator(order_type order, Node *node) : order(order), curr_node(node)
             {
-                if (this->order != nullptr)
+                if (this->curr_node != nullptr)
                 {
                     if (this->order == order_type::LevelOrder)
                     {
-                        for (size_t i = 0; i < this->curr_node->childs.size(); i++)
+                        for (auto c : this->curr_node->childs)
                         {
-                            this->que.push(this->curr_node->childs.at(i));
+                            this->que.push(c);
                         }
                     }
-
                     else if (this->order == order_type::PreOrder)
                     {
                         for (size_t i = this->curr_node->childs.size() - 1; i >= 0; i--)
