@@ -168,9 +168,13 @@ namespace ariel
                     }
                     else if (this->order == order_type::PreOrder)
                     {
-                        for (size_t i = this->curr_node->childs.size() - 1; i >= 0; i--)
+                        if (this->curr_node->childs.size() > 0)
                         {
-                            this->st.push(this->curr_node->childs.at(i));
+                            for (size_t i = this->curr_node->childs.size() - 1; i > 0; i--)
+                            {
+                                this->st.push(this->curr_node->childs.at(i));
+                            }
+                            this->st.push(this->curr_node->childs.at(0));
                         }
                     }
                     else
@@ -182,11 +186,17 @@ namespace ariel
                             n = this->que.front();
                             this->que.pop();
                             this->st.push(n);
-                            for (size_t i = this->curr_node->childs.size() - 1; i >= 0; i--)
+                            if (n->childs.size() > 0)
                             {
-                                this->que.push(this->curr_node->childs.at(i));
+                                for (size_t i = n->childs.size() - 1; i > 0; i--)
+                                {
+                                    this->que.push(n->childs.at(i));
+                                }
+                                this->que.push(n->childs.at(0));
                             }
                         }
+                        this->curr_node = st.top();
+                        st.pop();
                     }
                 }
             }
@@ -215,9 +225,13 @@ namespace ariel
                     }
                     this->curr_node = this->st.top();
                     this->st.pop();
-                    for (size_t i = this->curr_node->childs.size() - 1; i >= 0; i--)
+                    if (this->curr_node->childs.size() > 0)
                     {
-                        this->st.push(this->curr_node->childs.at(i));
+                        for (size_t i = this->curr_node->childs.size() - 1; i > 0; i--)
+                        {
+                            this->st.push(this->curr_node->childs.at(i));
+                        }
+                        this->st.push(this->curr_node->childs.at(0));
                     }
                 }
                 else
@@ -234,11 +248,11 @@ namespace ariel
             }
             T &operator*() const
             {
-                return this->curr_node->data;
+                return curr_node->data;
             }
             T *operator->() const
             {
-                return &(this->curr_node->data);
+                return &(curr_node->data);
             }
             bool operator==(const iterator &other)
             {
