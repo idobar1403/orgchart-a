@@ -5,7 +5,7 @@
 #include <stack>
 #include <vector>
 #include <queue>
-
+using namespace std;
 namespace ariel
 {
     template <typename T = std::string>
@@ -76,25 +76,63 @@ namespace ariel
         }
         ~OrgChart()
         {
-            if (!is_empty())
+            stack<Node *> st1;
+            stack<Node *> st2;
+            if (this->root->childs.size() > 0)
             {
-                delete this->root;
+                for (size_t i = this->root->childs.size() - 1; i > 0; i--)
+                {
+                    st1.push(this->root->childs.at(i));
+                    st2.push(this->root->childs.at(i));
+                }
+                st1.push(this->root->childs.at(0));
+                st2.push(this->root->childs.at(0));
             }
+            while (!st1.empty())
+            {
+                Node *curr_node = st1.top();
+                st1.pop();
+                if (curr_node->childs.size() > 0)
+                {
+                    for (size_t i = curr_node->childs.size() - 1; i > 0; i--)
+                    {
+                        st1.push(curr_node->childs.at(i));
+                        st2.push(curr_node->childs.at(i));
+                    }
+                    st1.push(curr_node->childs.at(0));
+                    st2.push(curr_node->childs.at(0));
+                }
+            }
+            while (!st2.empty())
+            {
+                Node *curr = st2.top();
+                st2.pop();
+                cout << "delete: " << curr->data << endl;
+                delete curr;
+            }
+            cout << "delete root " << endl;
+            delete this->root;
         }
-        // OrgChart(OrgChart<T> &other) noexcept
-        // {
-        //     this->root = other.root;
-        // }
-        // OrgChart(OrgChart<T> &&other) noexcept
-        // {
-        //     this->root = other.root;
-        //     other.root = nullptr;
-        // }
-        // OrgChart &operator=(OrgChart<T> &&other) noexcept
-        // {
-        //     this->root = other.root;
-        //     other.root = nullptr;
-        // }
+
+        OrgChart(OrgChart<T> &other) noexcept
+        {
+            this->root = other.root;
+        }
+        OrgChart(OrgChart<T> &&other) noexcept
+        {
+            this->root = other.root;
+            other.root = nullptr;
+        }
+        OrgChart &operator=(OrgChart<T> &&other) noexcept
+        {
+            this->root = other.root;
+            other.root = nullptr;
+        }
+        OrgChart &operator=(OrgChart<T> other) noexcept
+        {
+            this->root = other.root;
+            other.root = nullptr;
+        }
         OrgChart<T> &add_root(const T &data)
         {
             if (this->root == nullptr)
@@ -119,25 +157,24 @@ namespace ariel
             {
                 throw std::invalid_argument("can't add this nodes");
             }
+
+            if (node2 == nullptr)
+            {
+                node1->childs.push_back(new Node(data2));
+            }
             else
             {
-                if (node2 == nullptr)
+                Node *check = this->search_node(node2, data1);
+                if (check == nullptr)
                 {
-                    node1->childs.push_back(new Node(data2));
+                    node1->childs.push_back(node2);
                 }
                 else
                 {
-                    Node *check = this->search_node(node2, data1);
-                    if (check == nullptr)
-                    {
-                        node1->childs.push_back(node2);
-                    }
-                    else
-                    {
-                        throw std::invalid_argument("can't add higher node to be sub node");
-                    }
+                    throw std::invalid_argument("can't add higher node to be sub node");
                 }
             }
+
             return *this;
         }
         friend ostream &operator<<(ostream &os, const OrgChart &chart)
@@ -151,7 +188,7 @@ namespace ariel
         private:
             Node *curr_node;
             stack<Node *> st;
-            queue<Node *> que;
+            std::queue<Node *> que;
             order_type order;
 
         public:
